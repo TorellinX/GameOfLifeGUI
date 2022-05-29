@@ -21,7 +21,7 @@ public class DrawBoard extends JPanel {
   private static final int BIG_SIZE = 30;
   private static final int MEDIUM_SIZE = 20;
   private static final int SMALL_SIZE = 10;
-  private static final int BORDER_SIZE = 1;
+  static final int BORDER_SIZE = 1;
   private static final Color background = Color.LIGHT_GRAY;
   private static final Color dead = Color.GRAY;
   private static final Color alive = Color.CYAN;
@@ -43,18 +43,16 @@ public class DrawBoard extends JPanel {
     position = new Point(1, 1);
     this.columns = model.getColumns();
     this.rows = model.getRows();
-
-    createContent();
-    repaint();
-
-    // TODO insert code here
+    adjustPrefferedSize();
   }
 
-  // TODO insert code here
 
-  private void createContent(){
+  void adjustPrefferedSize(){
     this.setPreferredSize(new Dimension(BORDER_SIZE + (cellSize + BORDER_SIZE)*columns,BORDER_SIZE + (cellSize + BORDER_SIZE)*rows));
 
+  }
+  void adjustPrefferedSize(int columns, int rows){
+    this.setPreferredSize(new Dimension(BORDER_SIZE + (cellSize + BORDER_SIZE)*columns,BORDER_SIZE + (cellSize + BORDER_SIZE)*rows));
   }
 
 
@@ -70,8 +68,28 @@ public class DrawBoard extends JPanel {
     //int xPos = position.x;
     //int yPos = position.y;
 
+//    if (this.columns > model.getColumns() || this.rows > model.getRows()) {
+//      this.columns = model.getColumns();
+//      this.rows = model.getRows();
+//      System.out.println("DrawBoard cols and rows numbers was unupdated. Cols: " + this.columns +
+//           " > " + model.getColumns() + ", rows: " + this.rows + " > " + model.getRows());
+//    }
+    int dCols = this.columns;
+    int dRows = this.rows;
+    int mCols = model.getColumns();
+    int mRows = model.getRows();
+    if (dCols > mCols || dRows > mRows) {
+      this.columns = model.getColumns();
+      this.rows = model.getRows();
+      /*System.out.println("DrawBoard cols and rows numbers was unupdated. Cols: " + dCols +
+          " > " + mCols + ", rows: " + dRows + " > " + mRows);
+      System.out.println("It would seem that Cols: " + this.columns +
+           " > " + model.getColumns() + ", rows: " + this.rows + " > " + model.getRows());*/
+    }
+
     int yPos;
     int xPos = BORDER_SIZE;
+    //System.out.println("Repaint! Drawboard Cols: " + this.columns + ", rows: " + this.rows);
     for (int row = 0; row < this.rows; row++) {
       yPos = BORDER_SIZE;
       for (int col = 0; col < this.columns; col++) {
@@ -88,20 +106,51 @@ public class DrawBoard extends JPanel {
       xPos = xPos + (cellSize + BORDER_SIZE);
     }
 
-    addComponentListener(new ComponentAdapter() {
-      @Override
-      public void componentResized(ComponentEvent e) {
-        System.out.println("Resized!");
-      }
-    });
-
-
-
-
-    // TODO insert code here
+//    addComponentListener(new ComponentAdapter() {
+//      @Override
+//      public void componentResized(ComponentEvent e) {
+//        System.out.println("Resized!");
+//      }
+//    });
 
   }
 
-  // TODO insert code here
+  int getCellSize(){
+    return this.cellSize;
+  }
+
+
+  void setCellSize(String size){
+
+    switch (size) {
+      case "big":
+        this.cellSize = BIG_SIZE;
+        break;
+      case "medium":
+        this.cellSize = MEDIUM_SIZE;
+        break;
+      case "small":
+        this.cellSize = SMALL_SIZE;
+        break;
+      default:
+        throw new IllegalArgumentException("The cell size is not recognized");
+    }
+
+  }
+
+  void setColumns(int columns){
+    if(columns <= 0 ) {
+      throw new IllegalArgumentException("Number of columns must be positive");
+    }
+    this.columns = columns;
+  }
+
+  void setRows(int rows){
+    if(columns <= 0 ) {
+      throw new IllegalArgumentException("Number of rows must be positive");
+    }
+    this.rows = rows;
+  }
+
 
 }

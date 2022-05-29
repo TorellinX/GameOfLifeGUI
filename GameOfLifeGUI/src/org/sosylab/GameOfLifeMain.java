@@ -33,7 +33,6 @@ public class GameOfLifeMain {
     Controller controller = new GameOfLifeController(model);
 
     View view = new GameOfLifeView(model, controller);
-    //view.showGame();
     controller.setView(view);
     model.addPropertyChangeListener(view);
     controller.start();

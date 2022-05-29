@@ -4,6 +4,7 @@ import static java.util.Objects.requireNonNull;
 import static org.sosylab.model.Shapes.getAvailableShapes;
 import static org.sosylab.model.Shapes.getShapeByName;
 
+import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 import org.sosylab.model.Cell;
@@ -18,12 +19,16 @@ public class GameOfLifeController implements Controller {
 
   private final Model model;
   private View view;
+  private int currentSpeed;
+  boolean stepping;
 
   // TODO insert code here
 
   // TODO add documentation
   public GameOfLifeController(Model gameOfLife) {
     model = requireNonNull(gameOfLife);
+    this.currentSpeed = 1;
+    this.stepping = false;
   }
 
   @Override
@@ -51,63 +56,78 @@ public class GameOfLifeController implements Controller {
 
   @Override
   public boolean step() {
-    // TODO insert code here
     // step() soll ein next() mit SwingWorker aufrufen, so dass next() von einem anderen Thread bearbeitet wird.
-
-    SwingWorker<Boolean, Void> worker = new SwingWorker<Boolean, Void>() {
+    SwingWorker<Boolean, Void> worker = new SwingWorker<>() {
       @Override
       protected Boolean doInBackground() throws Exception {
-        /*
-        SwingUtilities.invokeLater(new Runnable() {
-          @Override
-          public void run() {
-
-          }
-        });
-        */
-        model.next();
-        return true;
+       model.next();
+        System.out.println("Next: " + true );
+       return true;
       }
     };
-    System.out.println("before: " + model.getGenerations());
     worker.execute();
-    System.out.println("after???: " + model.getGenerations());
+    System.out.println("Next: " + false );
     return false;
-
   }
 
   @Override
-  public void stepIndefinitely() {
-    // TODO insert code here
+  public void stepIndefinitely(){
+    // ?? Eingabe validieren
+    this.stepping = true;
+    System.out.println(stepping);
+    SwingWorker<Void,Void> swingWorker = new SwingWorker<Void, Void>() {
+      @Override
+      protected Void doInBackground() throws Exception {
+        view.startStepping(); // einige GUI-Elemente deaktivieren (kann auch in View realisiert werden)
+        Thread.sleep(1000 / currentSpeed);
+        while (stepping) {
+          step();
+          Thread.sleep(1000 / currentSpeed);
+        }
+        return null;
+      }
+    };
+    swingWorker.execute();
   }
 
   @Override
   public void setStepSpeed(int value) {
-    // TODO insert code here
+    // Validierung?
+    currentSpeed = value;
   }
 
   @Override
   public void stopStepping() {
-    // TODO insert code here
+    view.stopStepping();
+    this.stepping = false;
+    System.out.println(stepping);
   }
 
   @Override
   public void setShape(Shape shape) {
-    // проверка, что Shape влезает в поле ????????????????????????????
+    System.out.println(shape.getColumns() + ">" + model.getColumns() + "||" + shape.getRows() + ">" + model.getRows());
+     if (shape.getColumns() > model.getColumns() || shape.getRows() > model.getRows()) {
+       GameOfLifeView.displayError("The size of the shape may not exceed the size of the game field. \nThe shape \""
+           + shape.getName().substring(0, 1).toUpperCase() + shape.getName().substring(1) + "\" requires min. "
+           + shape.getColumns() + "x" + shape.getRows() + " field.");
+       return;
+     }
     model.clear();
     if(shape == null) {
-      throw new NullPointerException("The Shape is not recognised");
+      throw new NullPointerException("The Shape is not recognized");
     }
     placeShape(shape);
   }
 
   @Override
-  public void resize(int width, int height) {
-    // TODO insert code here
+  public void resize(int cols, int rows) {
+    model.resize(cols, rows);
+    System.out.println("model.resize(cols, rows) done. Model.cols: " + model.getColumns() + "rows: " + model.getRows());
   }
 
   @Override
   public void dispose() {
+    this.stopStepping();
     model.removePropertyChangeListener(view);
   }
   /*

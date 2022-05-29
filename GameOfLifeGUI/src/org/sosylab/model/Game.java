@@ -255,18 +255,18 @@ public class Game implements Model {
     int oldCols = getColumns();
     int oldRows = getRows();
 
-    allNeighbors.clear();
     if (oldCols == newCols && oldRows == newRows) {
       return; // nothing to do
     }
-    if (newCols < getColumns()) {
+    allNeighbors.clear();
+    if (newRows < oldRows) {
       for (int row = newRows; row < oldRows; row++) {
         for (int col = 0; col < oldCols; col++) {
           population.remove(field[row][col]);
         }
       }
     }
-    if (newRows < field.length) {
+    if (newCols < oldCols) {
       for (int row = 0; row < oldRows; row++) {
         for (int col = newCols; col < oldCols; col++) {
           population.remove(field[row][col]);
