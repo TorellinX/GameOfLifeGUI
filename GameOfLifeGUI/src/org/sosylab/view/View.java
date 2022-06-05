@@ -3,8 +3,8 @@ package org.sosylab.view;
 import java.beans.PropertyChangeListener;
 
 /**
- * The main interface of the view. The state it displays is directly taken from the {@link
- * org.sosylab.model.Model}.
+ * The main interface of the view. The state it displays is directly taken from the
+ * {@link org.sosylab.model.Model}.
  */
 public interface View extends PropertyChangeListener {
 

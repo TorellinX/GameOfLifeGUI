@@ -13,7 +13,31 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * TODO: Add JavaDoc and implement the Grid-interface accordingly
+ * Contains the grid, the current shape and the Game Of Life algorithm that changes it.
+ *
+ * <p>The universe of the Game of Life is an infinite two-dimensional orthogonal
+ * grid of square cells, each of which is in one of two possible states, alive or dead. Every cell
+ * interacts with its eight neighbors, which are the cells that are directly horizontally,
+ * vertically, or diagonally adjacent. At each step in time, the following transitions (= genetic
+ * rules) occur:
+ *
+ * <ol>
+ * <li>Deaths. Every cell with none or one alive neighboring cells dies (is
+ * removed) due to isolation for the next generation. Every cell with four or
+ * more alive neighboring cells dies due to overcrowding for the next
+ * generation.</li>
+ * <li>Survivals. Every cell with two or three alive neighboring cells survives
+ * (stays) for the next generation.</li>
+ * <li>Births. Each dead cell adjacent to exactly three alive neighboring cells
+ * - no more, no fewer - is born (added) for the next generation.</li>
+ * </ol>
+ *
+ * <p>The initial pattern constitutes the 'seed' of the system. The first
+ * generation is created by applying the above rules simultaneously to every
+ * cell in the seed in which births and deaths happen simultaneously, and the
+ * discrete moment at which this happens is sometimes called a tick. (In other
+ * words, each generation is a pure function of the one before.) The rules
+ * continue to be applied repeatedly to create further generations.
  */
 public class Game implements Model {
 
@@ -37,31 +61,41 @@ public class Game implements Model {
 
   private final PropertyChangeSupport support;
 
-  private int generation;
+  private int generation = 0;
+
+  /*
+   * Every cell on the grid is a Cell object. The first dimension are the rows, the second the
+   * columns.
+   *
+   * <p>This object provides a convenient way of accessing cells in a quick manner. Note that it
+   * does not store the state of a cell, i.e. whether it is dead or alive (this is done in the
+   * population-collection).
+   */
   private Cell[][] field;
   private final Map<Integer, List<Cell>> allNeighbors;
   private final Set<Cell> population;
 
   /**
-   * Constructs a new game with a default size of {@link Game#INITIAL_COLUMNS} and  of {@link
-   * Game#INITIAL_ROWS} consisting solely of dead cells.
+   * Constructs a new game with a default size of {@link Game#INITIAL_COLUMNS} and  of
+   * {@link Game#INITIAL_ROWS} consisting solely of dead cells.
    */
   public Game() {
     this(INITIAL_COLUMNS, INITIAL_ROWS);
-
-    // TODO: This is an example constructor. You can safely remove it if you do no need it.
   }
 
   /**
-   * TODO: add JavaDoc
+   * Constructs a new game consisting solely of dead cells.
+   *
+   * @param columns Number of columns.
+   * @param rows    Number of rows.
    */
   public Game(int columns, int rows) {
-    support = new PropertyChangeSupport(this);
-
     if (columns <= 0 || rows <= 0) {
       throw new IllegalArgumentException("Number of columns and rows must be positive");
     }
-    this.generation = 0;
+
+    support = new PropertyChangeSupport(this);
+
     this.field = new Cell[rows][columns];
     this.allNeighbors = new HashMap<>();
     this.population = new HashSet<>();
@@ -71,34 +105,13 @@ public class Game implements Model {
   /**
    * Fills the empty instance-fields with a default values.
    */
-  private void initializeFields() {
+  private synchronized void initializeFields() {
     for (int row = 0; row < field.length; row++) {
       for (int col = 0; col < field[0].length; col++) {
-        field[row][col] = new Cell(col, row);
+        field[row][col] = new Cell(col, row);  // each cell has unique coordinates
         allNeighbors.put(field[row][col].hashCode(), getNeighbors(field[row][col]));
-        setCellDead(col, row);
       }
     }
-  }
-
-  public void placeShape(Shape shape) {
-    int shapeColumns = shape.getColumns();
-    int shapeRows = shape.getRows();
-    int fieldColumns = this.getColumns();
-    int fieldRows = this.getRows();
-    int offsetRows = Math.floorDiv(fieldRows - shapeRows, 2);
-    int offsetColumns = Math.floorDiv(fieldColumns - shapeColumns, 2);
-
-    for (Cell cell : shape.getShapePopulation()) {
-      this.population.add(new Cell(cell.getColumn() + offsetColumns, cell.getRow() + offsetRows));
-    }
-  }
-
-  /**
-   * Sets the counter of genrations to zero.
-   */
-  private void setGenerationToZero() {
-    this.generation = 0;
   }
 
   /**
@@ -210,7 +223,7 @@ public class Game implements Model {
   }
 
   @Override
-  public boolean isCellAlive(int col, int row) throws IllegalArgumentException {
+  public synchronized boolean isCellAlive(int col, int row) throws IllegalArgumentException {
     if (col >= this.getColumns() || row >= this.getRows()) {
       throw new IllegalArgumentException(
           "Parameters for column and row may not exceed the maximum number of columns and rows");
@@ -218,22 +231,33 @@ public class Game implements Model {
     if (col < 0 || row < 0) {
       throw new IllegalArgumentException("Number of column and row may not be negative");
     }
-    return population.contains(new Cell(col, row));
+    return population.contains(field[row][col]);
   }
 
   @Override
   public void setCellAlive(int col, int row) throws IllegalArgumentException {
     setCellWithoutNotification(col, row, true);
-    population.add(new Cell(col, row));
     notifyListeners();
   }
-
 
   @Override
   public void setCellDead(int col, int row) throws IllegalArgumentException {
     setCellWithoutNotification(col, row, false);
     notifyListeners();
   }
+
+  /**
+   * Put a cell into either a living or dead state.
+   *
+   * <p>This method does not make a call to {@link #notifyListeners()}, use the methods
+   * {@linkplain Game#setCellAlive(int, int) setCellAlive(int, int)} or
+   * {@linkplain Game#setCellDead(int, int) setCellDead(int, int)}instead</p>
+   *
+   * @param col   The column of the cell
+   * @param row   The row of the cell
+   * @param alive if <code>true</code>, the cell is set alive; otherwise it is put into its dead
+   *              state
+   */
   private synchronized void setCellWithoutNotification(int col, int row, boolean alive) {
     if (col < 0 || row < 0) {
       throw new IllegalArgumentException("Number of column and row may not be negative");
@@ -241,7 +265,6 @@ public class Game implements Model {
       throw new IllegalArgumentException("Parameters for column and row may not exceed "
           + "the maximum number of columns and rows");
     }
-
     Cell cell = new Cell(col, row);
     if (alive) {
       population.add(cell); // no addition if already present
@@ -258,6 +281,7 @@ public class Game implements Model {
     if (oldCols == newCols && oldRows == newRows) {
       return; // nothing to do
     }
+
     allNeighbors.clear();
     if (newRows < oldRows) {
       for (int row = newRows; row < oldRows; row++) {
@@ -301,8 +325,9 @@ public class Game implements Model {
 
   @Override
   public synchronized void clear() {
+    this.generation = 0;
     population.clear();
-    this.setGenerationToZero();
+
     notifyListeners();
   }
 
@@ -336,7 +361,6 @@ public class Game implements Model {
     return stringBuilder.toString();
   }
 
-
   @Override
   public void addPropertyChangeListener(PropertyChangeListener pcl) {
     requireNonNull(pcl);
@@ -350,13 +374,11 @@ public class Game implements Model {
   }
 
   /**
-   * Invokes the model to fire a new event, such that any attached observer (i.e., {@link
-   * PropertyChangeListener}) gets notified about a change in this model.
+   * Invokes the model to fire a new event, such that any attached observer (i.e.,
+   * {@link PropertyChangeListener}) gets notified about a change in this model.
    */
   private void notifyListeners() {
     support.firePropertyChange(STATE_CHANGED, null, this);
   }
-
-
 }
 

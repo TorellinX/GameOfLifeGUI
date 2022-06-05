@@ -1,6 +1,5 @@
 package org.sosylab.model;
 
-import java.util.Objects;
 
 /**
  * A two-dimensional coordinate within a cell grid.

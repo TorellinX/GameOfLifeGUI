@@ -13,9 +13,7 @@ public class Shapes {
   private static final Shape GLIDER;
   private static final Shape SPACESHIP;
   private static final Shape PULSAR;
-
   private static final Shape[] SHAPES;
-
   private static final String[] availableShapes;
 
   static {
@@ -27,22 +25,15 @@ public class Shapes {
     SPACESHIP = new Shape("spaceship",
         new int[][]{{0, 1, 0, 0, 1}, {1, 0, 0, 0, 0}, {1, 0, 0, 0, 1}, {1, 1, 1, 1, 0}});
     PULSAR = new Shape("pulsar", new int[][]{{0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0},
-        {0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0},
-        {1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1},
-        {1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1},
-        {0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0},
-        {0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0},
-        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-        {0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0},
-        {0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0},
-        {1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1},
-        {1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1},
-        {0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0},
-        {0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0}});
+        {0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0}, {1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1},
+        {1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1}, {0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0},
+        {0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0}, {0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0},
+        {1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1}, {1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1},
+        {0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0}, {0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0}});
 
     SHAPES = new Shape[]{BLOCK, BOAT, BLINKER, TOAD, GLIDER, SPACESHIP, PULSAR};
-
-    availableShapes = checkAvailableShapes();
+    availableShapes = createAvailableShapes();
   }
 
   /**
@@ -60,21 +51,26 @@ public class Shapes {
     return null;
   }
 
-  private static String[] checkAvailableShapes(){
+  /**
+   * Creates an array of names of available shapes.
+   *
+   * @return array of names of available shapes
+   */
+  private static String[] createAvailableShapes() {
     String[] availableShapes = new String[SHAPES.length];
     for (int i = 0; i < SHAPES.length; i++) {
-      availableShapes[i] = SHAPES[i].getName().substring(0,1).toUpperCase() + SHAPES[i].getName().substring(1);
+      availableShapes[i] =
+          SHAPES[i].getName().substring(0, 1).toUpperCase() + SHAPES[i].getName().substring(1);
     }
     return availableShapes;
   }
 
   /**
-   * Get a list of available shapes to shown when an incorrect argument was entered for the command
-   * SHAPE.
+   * Get an array of names of available shapes.
    *
-   * @return a string with a list of available shapes
+   * @return array of names of available shapes
    */
   public static String[] getAvailableShapes() {
-    return availableShapes;
+    return availableShapes.clone();
   }
 }

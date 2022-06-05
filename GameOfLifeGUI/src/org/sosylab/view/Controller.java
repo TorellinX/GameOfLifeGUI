@@ -1,12 +1,6 @@
 package org.sosylab.view;
 
-import static org.sosylab.model.Shapes.getAvailableShapes;
-import static org.sosylab.model.Shapes.getShapeByName;
-
-import org.sosylab.model.Game;
-import org.sosylab.model.Grid;
 import org.sosylab.model.Shape;
-
 
 
 /**
@@ -52,8 +46,8 @@ public interface Controller {
   boolean step();
 
   /**
-   * Set the speed for the execution of simulation steps when invoking the method {@link
-   * #stepIndefinitely()}.
+   * Set the speed for the execution of simulation steps when invoking the method
+   * {@link #stepIndefinitely()}.
    *
    * @param value The speed in milliseconds.
    */
