@@ -30,23 +30,17 @@ public class DrawBoard extends JPanel {
   private static final Color alive = Color.CYAN;
 
   private int cellSize;
-  private int columns;
-  private int rows;
   private final Model model;
   private final Controller controller;
   boolean isToSetAlive;
 
   /**
    * Constructs a new draw board on the window.
-   *
-   * @param gameView a window for the draw board.
    */
-  public DrawBoard(GameOfLifeView gameView) {
-    this.model = gameView.getModel();
-    this.controller = gameView.getController();
+  public DrawBoard(Model model, Controller controller) {
+    this.model = model;
+    this.controller = controller;
     cellSize = BIG_SIZE;  // default
-    this.columns = model.getColumns();
-    this.rows = model.getRows();
     createDrawEventListeners();
     adjustPreferredSize();
   }
@@ -57,8 +51,8 @@ public class DrawBoard extends JPanel {
    * columns and rows.
    */
   void adjustPreferredSize() {
-    this.setPreferredSize(new Dimension(BORDER_SIZE + (cellSize + BORDER_SIZE) * columns,
-        BORDER_SIZE + (cellSize + BORDER_SIZE) * rows));
+    this.setPreferredSize(new Dimension(BORDER_SIZE + (cellSize + BORDER_SIZE) * model.getColumns(),
+        BORDER_SIZE + (cellSize + BORDER_SIZE) * model.getRows()));
   }
 
   @Override
@@ -66,17 +60,11 @@ public class DrawBoard extends JPanel {
     g.setColor(background);
     g.fillRect(0, 0, getWidth(), getHeight());
 
-    // don't know, how to fix that repaint() is automatically called by thread before the state of
-    // the draw board is updated by handleChangeEvent(PropertyChangeEvent event), what causes
-    // unupdated numbers of columns and rows at repaint(), so I wrote this additional forced update
-    this.columns = model.getColumns();
-    this.rows = model.getRows();
-
     int positionX;
     int positionY = BORDER_SIZE;
-    for (int row = 0; row < this.rows; row++) {
+    for (int row = 0; row < model.getRows(); row++) {
       positionX = BORDER_SIZE;
-      for (int col = 0; col < this.columns; col++) {
+      for (int col = 0; col < model.getColumns(); col++) {
         if (this.model.isCellAlive(col, row)) {
           g.setColor(alive);
         } else {
@@ -112,30 +100,6 @@ public class DrawBoard extends JPanel {
       case "small" -> this.cellSize = SMALL_SIZE;
       default -> throw new IllegalArgumentException("The cell size is not recognized");
     }
-  }
-
-  /**
-   * Sets the number of columns of the draw board.
-   *
-   * @param columns numbers of columns
-   */
-  void setColumns(int columns) {
-    if (columns <= 0) {
-      throw new IllegalArgumentException("Number of columns must be positive");
-    }
-    this.columns = columns;
-  }
-
-  /**
-   * Sets the number of rows of the draw board.
-   *
-   * @param rows numbers of rows
-   */
-  void setRows(int rows) {
-    if (columns <= 0) {
-      throw new IllegalArgumentException("Number of rows must be positive");
-    }
-    this.rows = rows;
   }
 
   /**

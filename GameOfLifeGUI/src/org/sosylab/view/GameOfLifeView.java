@@ -7,8 +7,6 @@ import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Toolkit;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.beans.PropertyChangeEvent;
@@ -21,8 +19,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
 import javax.swing.SwingUtilities;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import org.sosylab.model.Model;
 import org.sosylab.model.Shapes;
 
@@ -51,8 +47,6 @@ public class GameOfLifeView extends JFrame implements View {
   private final JLabel generation;
 
   private static Dimension screenSize;
-  private static final int MIN_SPEED = 1;
-  private static final int MAX_SPEED = 30;
 
   /**
    * Constructs a new view of game.
@@ -66,7 +60,7 @@ public class GameOfLifeView extends JFrame implements View {
     this.model = requireNonNull(model);
     this.controller = requireNonNull(controller);
 
-    drawBoard = new DrawBoard(this);
+    drawBoard = new DrawBoard(this.getModel(), this.getController());
     controlBoard = new JPanel();
 
     shapes = new JComboBox<>(Shapes.getAvailableShapes());
@@ -115,65 +109,40 @@ public class GameOfLifeView extends JFrame implements View {
    * Creates EventListeners for elements on the control panel.
    */
   private void createControlEventListeners() {
-    shapes.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        JComboBox shapesBox = (JComboBox) e.getSource();
-        controller.setShape(Shapes.getShapeByName(
-            requireNonNull(shapesBox.getSelectedItem()).toString().toLowerCase()));
+    shapes.addActionListener(e -> controller.setShape(Shapes.getShapeByName(
+        requireNonNull(
+            shapes.getSelectedItem()).toString().toLowerCase())));
+
+    nextButton.addActionListener(e -> controller.step());
+
+    startButton.addActionListener(e -> {
+      if (startButton.getText().equals("Start")) {
+        controller.stepIndefinitely();
       }
-
-    });
-
-    nextButton.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        controller.step();
-      }
-    });
-
-    startButton.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        if (startButton.getText().equals("Start")) {
-          controller.stepIndefinitely();
-        }
-        if (startButton.getText().equals("Stop")) {
-          controller.stopStepping();
-        }
-      }
-    });
-
-    clearButton.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
+      if (startButton.getText().equals("Stop")) {
         controller.stopStepping();
-        controller.clearBoard();
       }
     });
 
-    speed.addChangeListener(new ChangeListener() {
-      @Override
-      public void stateChanged(ChangeEvent e) {
-        controller.setStepSpeed(speed.getValue());
-      }
+    clearButton.addActionListener(e -> {
+      controller.stopStepping();
+      controller.clearBoard();
     });
 
-    size.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        JComboBox sizeBox = (JComboBox) e.getSource();
-        String size = requireNonNull(sizeBox.getSelectedItem()).toString().toLowerCase();
-        drawBoard.setCellSize(size);
-        if (getHeight() > screenSize.height || getWidth() > screenSize.width) {
-          int cols = (screenSize.height - DrawBoard.BORDER_SIZE) / (drawBoard.getCellSize()
-              + DrawBoard.BORDER_SIZE);
-          int rows = (screenSize.width - controlBoard.getHeight() - getInsets().top
-              - DrawBoard.BORDER_SIZE) / (drawBoard.getCellSize() + DrawBoard.BORDER_SIZE);
-          controller.resize(cols, rows);
-        }
-        repackWindow();
+    speed.addChangeListener(e -> controller.setStepSpeed(speed.getValue()));
+
+    size.addActionListener(e -> {
+      String sizeName = requireNonNull(
+          size.getSelectedItem()).toString().toLowerCase();
+      drawBoard.setCellSize(sizeName);
+      if (getHeight() > screenSize.height || getWidth() > screenSize.width) {
+        int cols = (screenSize.height - DrawBoard.BORDER_SIZE) / (drawBoard.getCellSize()
+            + DrawBoard.BORDER_SIZE);
+        int rows = (screenSize.width - controlBoard.getHeight() - getInsets().top
+            - DrawBoard.BORDER_SIZE) / (drawBoard.getCellSize() + DrawBoard.BORDER_SIZE);
+        controller.resize(cols, rows);
       }
+      repackWindow();
     });
 
     addComponentListener(new ComponentAdapter() {
@@ -256,8 +225,6 @@ public class GameOfLifeView extends JFrame implements View {
    */
   private void handleChangeEvent(PropertyChangeEvent event) {
     if (event.getPropertyName().equals(Model.STATE_CHANGED)) {
-      drawBoard.setColumns(model.getColumns());
-      drawBoard.setRows(model.getRows());
       repaintWindow();
     }
   }

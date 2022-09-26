@@ -80,10 +80,9 @@ public class GameOfLifeController implements Controller {
       @Override
       protected Void doInBackground() throws Exception {
         view.startStepping();
-        Thread.sleep(1000 / currentSpeed);
         while (stepping) {
-          step();
           Thread.sleep(1000 / currentSpeed);
+          step();
         }
         return null;
       }

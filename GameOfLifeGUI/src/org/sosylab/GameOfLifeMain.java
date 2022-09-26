@@ -36,7 +36,5 @@ public class GameOfLifeMain {
     controller.setView(view);
     model.addPropertyChangeListener(view);
     controller.start();
-
   }
-
 }
